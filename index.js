@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const { connectDB } = require('./src/config/db');
 const mainRouter = require('./src/api/routes/main');
+const { connectCloudinary } = require('./src/config/cloudinary');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 
@@ -13,6 +14,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 connectDB();
+connectCloudinary();
 app.use(cookieParser());
 app.use(express.json());
 
