@@ -1,52 +1,174 @@
+const { deleteFile } = require('../../utils/cloudinary/deleteFile');
+const emailRegex = require('../../utils/Variables/emailRegex');
+const phoneRegex = require('../../utils/Variables/phoneRegex');
+const Accommodation = require('../models/accommodation');
+const Reservation = require('../models/reservation');
 const mongoose = require('mongoose');
 
-const accommodationSchema = new mongoose.Schema(
-  {
-    name: { type: String, required: true, trim: true },
-    type: {
-      type: String,
-      required: true,
-      enum: ['Cabaña', 'Camping', 'Casa de arbol', 'Albergues', 'Resorts', 'Refugios']
-    },
-    services: [
-      {
-        type: String,
-        required: true,
-        enum: ['Gestión eficiente de recursos', 'Alimentación Responsable', 'Manejo de Residuos', 'Alojamiento y decoración ecológica', 'Actividades ecológicas', 'Movilidad verde', 'Educación y sostenibilidad', 'Bienestar y conexión con la naturaleza', 'Tecnología verde', 'Responsabilidad Social']
-      }
-    ],
-    description: { type: String, required: true },
-    capacity: { type: Number, required: true },
-    rules: { type: [String], required: true },
-    ubi: { type: String, required: true },
-    price: { type: Number, required: true },
-    paymentType: {
-      type: String,
-      required: true,
-      enum: ['Visa', 'PayPal', 'Transeferencía', 'Efectivo']
-    },
-    contactDetails: {
-      email: {
-        type: String,
-        required: true,
-        lowercase: true,
-        match: [/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, 'Por favor ingrese un correo electrónico válido']
-      },
-      phone: {
-        type: String,
-        required: true,
-        match: [/^\d+$/, 'El teléfono solo puede contener números']
-      }
-    },
-    images: [{ type: String }],
-    idAuthor: { type: mongoose.Schema.Types.ObjectId, ref: 'Users', required: true }
-  },
-  {
-    timeseries: true,
-    timestamps: true,
-    collection: 'Accommodations'
-  }
-);
+async function getAccommodations(req, res) {
+  try {
+    const parsedCapacity = Number(req.query.capacity);
+    const { ubi = '', idAuthor = '' } = req.query;
 
-const Accommodation = mongoose.model('Accommodations', accommodationSchema, 'Accommodations');
-module.exports = Accommodation;
+    const query = {};
+
+    if (idAuthor && mongoose.Types.ObjectId.isValid(idAuthor)) {
+      query.idAuthor = new mongoose.Types.ObjectId(idAuthor);
+    }
+
+    if (ubi) {
+      query.ubi = { $regex: ubi, $options: 'i' };
+    }
+
+    if (parsedCapacity) {
+      query.capacity = { $gte: parsedCapacity };
+    }
+
+    const accommodations = await Accommodation.find(query);
+    return res.status(200).json({
+      message: 'Lista de alojamientos',
+      accommodations
+    });
+  } catch (error) {
+    log;
+    return res.status(500).json({
+      message: 'Internal Server Error'
+    });
+  }
+}
+async function getAccommodation(req, res) {
+  try {
+    const { id } = req.params;
+    const accommodation = await Accommodation.findById(id);
+    return res.status(200).json({
+      message: 'Alojamiento',
+      accommodation
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Internal Server Error'
+    });
+  }
+}
+
+async function getRandomAccommodations(req, res) {
+  try {
+    const accommodations = await Accommodation.find();
+    if (accommodations.length < 2) {
+      return res.status(400).json({
+        message: 'No hay tres actividades'
+      });
+    }
+    const accommodationsRandom = accommodations.sort(() => 0.5 - Math.random()).slice(0, 3);
+    return res.status(200).json(accommodationsRandom);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      error: error,
+      message: 'Internal Server Error'
+    });
+  }
+}
+
+async function createAccommodations(req, res) {
+  try {
+    const newAccommodation = new Accommodation(req.body);
+    newAccommodation.idAuthor = req.user._id.toString();
+    if (req.files && req.files.images) {
+      const imagePaths = req.files.images.map((file) => file.path);
+      newAccommodation.images.push(...imagePaths);
+    }
+    const accommodation = await newAccommodation.save();
+    return res.status(200).json({
+      message: 'Alojamiento creado correctamente',
+      accommodation
+    });
+  } catch (error) {
+    console.log(error);
+
+    return res.status(500).json({
+      message: 'Internal Server Error'
+    });
+  }
+}
+async function updateAccommodations(req, res) {
+  try {
+    const { id } = req.params;
+    const { services, rules, contactDetails, ...allProperties } = req.body;
+
+    if (contactDetails?.email && !emailRegex.test(email)) {
+      return res.status(400).json({
+        message: 'Introduce un email válido'
+      });
+    }
+    if (contactDetails?.phone && !phoneRegex.test(phone)) {
+      return res.status(400).json({
+        message: 'Introduce un número de teléfono válido'
+      });
+    }
+
+    const oldAccommodation = await Accommodation.findById(id);
+    if (!oldAccommodation) {
+      req.files.images.forEach((image) => deleteFile(image.path));
+      return res.status(400).json({
+        message: 'Alojamiento no encontrada'
+      });
+    }
+
+    if (req.files && req.files.images) {
+      oldAccommodation.images.forEach((image) => deleteFile(image));
+      req.body.images = req.files.images.map((file) => file.path);
+    }
+    const accommodation = await Accommodation.findByIdAndUpdate(
+      id,
+      {
+        $set: { ...allProperties, images: req.body.images || oldAccommodation.images, contactDetails: contactDetails || oldAccommodation.contactDetails },
+        $addToSet: {
+          services: services || oldAccommodation.services,
+          rules: rules || oldAccommodation.rules
+        }
+      },
+      { new: true }
+    );
+    return res.status(200).json({
+      message: 'Alojamiento actualizado correctamente',
+      accommodation
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Internal Server Error'
+    });
+  }
+}
+async function deleteAccommodations(req, res) {
+  try {
+    const { id } = req.params;
+    const reservation = await Reservation.findOne({ accommodationId: id });
+
+    if (!reservation) {
+      const accommodation = await Accommodation.findByIdAndDelete(id, { new: true });
+      accommodation.images.forEach((file) => deleteFile(file));
+      return res.status(200).json({
+        message: 'Alojamiento eliminado correctamente',
+        accommodation
+      });
+    } else {
+      return res.status(400).json({
+        message: 'No puedes eliminar el alojamiento con reservas pendientes'
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Internal Server Error'
+    });
+  }
+}
+
+module.exports = {
+  getAccommodation,
+  getAccommodations,
+  getRandomAccommodations,
+  createAccommodations,
+  updateAccommodations,
+  deleteAccommodations
+};
