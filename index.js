@@ -19,8 +19,7 @@ app.use(cookieParser());
 app.use(express.json());
 
 app.use('/api/v1/ecoturismo', mainRouter);
-
-app.use('*', ({ res }) => {
+app.use('*', (req, res) => {
   return res.status(404).send(
     `  <!DOCTYPE html>
     <html lang="es">
