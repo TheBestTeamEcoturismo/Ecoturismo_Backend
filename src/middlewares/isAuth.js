@@ -3,8 +3,6 @@ const { verifyToken } = require('../utils/jwt/jwt');
 
 async function isAuth(req, res, next) {
   try {
-    console.log(req);
-
     const token = req.cookies.auth_token;
 
     if (!token) {

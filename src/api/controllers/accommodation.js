@@ -62,7 +62,6 @@ async function getRandomAccommodations(req, res) {
     const accommodationsRandom = accommodations.sort(() => 0.5 - Math.random()).slice(0, 3);
     return res.status(200).json(accommodationsRandom);
   } catch (error) {
-    console.log(error);
     return res.status(500).json({
       error: error,
       message: 'Internal Server Error'
@@ -84,8 +83,6 @@ async function createAccommodations(req, res) {
       accommodation
     });
   } catch (error) {
-    console.log(error);
-
     return res.status(500).json({
       message: 'Internal Server Error'
     });

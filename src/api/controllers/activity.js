@@ -35,7 +35,6 @@ async function getRandomActivities(req, res) {
     const activitiesRandom = activities.sort(() => 0.5 - Math.random()).slice(0, 3);
     return res.status(200).json(activitiesRandom);
   } catch (error) {
-    console.log(error);
     return res.status(500).json({
       error: error,
       message: 'Internal Server Error'
@@ -69,8 +68,6 @@ async function getActivities(req, res) {
       activities
     });
   } catch (error) {
-    console.log(error);
-
     return res.status(500).json({
       message: 'Internal Server Error'
     });
@@ -129,8 +126,6 @@ async function updateActivity(req, res) {
       activity
     });
   } catch (error) {
-    console.log(error);
-
     return res.status(500).json({
       message: 'Internal Server Error'
     });

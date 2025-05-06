@@ -67,22 +67,22 @@ async function login(req, res) {
       user.rol = undefined;
       user.email = undefined;
 
-      res.cookie('auth_token', token, {
-        httpOnly: true,
-        secure: false,
-        sameSite: 'Lax',
-        maxAge: 3600000,
-        path: '/'
-      });
-
       // res.cookie('auth_token', token, {
       //   httpOnly: true,
-      //   secure: true,
-      //   sameSite: 'None',
+      //   secure: false,
+      //   sameSite: 'Lax',
       //   maxAge: 3600000,
-      //   domain: '.eco-back-ebon.vercel.app',
       //   path: '/'
       // });
+
+      res.cookie('auth_token', token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'None',
+        maxAge: 3600000,
+        domain: '.eco-back-ebon.vercel.app',
+        path: '/'
+      });
 
       return res.status(200).json({
         message: 'Login realizado correctamente',
@@ -94,8 +94,6 @@ async function login(req, res) {
       });
     }
   } catch (error) {
-    console.log(error);
-
     return res.status(500).json({
       message: 'Internal Server Error'
     });
@@ -209,7 +207,6 @@ async function deleteUser(req, res) {
     const { id } = req.params;
     const oldUser = await User.findById(id);
     const accommodations = await Accommodation.find({ idAuthor: id });
-    console.log(accommodations);
 
     const activities = await Activity.find({ idAuthor: id });
 
@@ -237,8 +234,6 @@ async function deleteUser(req, res) {
       user
     });
   } catch (error) {
-    console.log(error);
-
     return res.status(500).json({
       message: 'Internal Server Error'
     });

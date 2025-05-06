@@ -69,7 +69,7 @@ async function newReservation(req, res) {
       );
 
       const reservation = await newreservation.save();
-      // sendEmail(user, newreservation, newreservation.typeReservation);
+      sendEmail(user, newreservation, newreservation.typeReservation);
 
       return res.status(201).json({
         message: 'Reserva realizada correctamente, revisa tu correo para poder verla.',
@@ -96,14 +96,12 @@ async function deleteReservation(req, res) {
       { new: true }
     );
     const { user } = req;
-    // sendEmail(user, reservation, 'Cancelar');
+    sendEmail(user, reservation, 'Cancelar');
     return res.status(200).json({
       message: 'Reserva eliminada correctamente, te hemos enviado un mensaje con la reserva cancleada',
       reservation
     });
   } catch (error) {
-    console.log(error);
-
     return res.status(500).json({
       message: 'Internal Server Error'
     });
