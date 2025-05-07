@@ -80,7 +80,7 @@ async function login(req, res) {
         secure: true,
         sameSite: 'None',
         maxAge: 3600000,
-        domain: '.eco-back-ebon.vercel.app',
+        domain: '.ecoturismo-backend.vercel.app',
         path: '/'
       });
 
