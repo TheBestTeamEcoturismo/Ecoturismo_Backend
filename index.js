@@ -8,7 +8,7 @@ const cookieParser = require('cookie-parser');
 
 const app = express();
 const corsOptions = {
-  origin: 'https://ecoturismo-frontend.vercel.app/',
+  origin: 'https://ecoturismo-frontend.vercel.app',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Custom-Header'],
   credentials: true
