@@ -58,7 +58,7 @@ async function newReservation(req, res) {
         message: 'Ya tienes una reserva de ese alojamiento para ese mismo día'
       });
     } else {
-      await User.findByIdAndUpdate(
+      const user = await User.findByIdAndUpdate(
         _id,
         {
           $push: {
