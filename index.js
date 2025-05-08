@@ -8,6 +8,7 @@ const cookieParser = require('cookie-parser');
 
 const app = express();
 const corsOptions = {
+  // origin: 'http://localhost:5173',
   origin: 'https://ecoturismo-frontend.vercel.app',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Custom-Header'],
@@ -44,6 +45,6 @@ app.use('*', (req, res) => {
   );
 });
 
-app.listen(3001, () => {
+app.listen(3000, () => {
   console.log('Servidor levantado en http://localhost:3000');
 });
