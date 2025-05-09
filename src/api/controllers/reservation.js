@@ -1,4 +1,6 @@
 const { sendEmail } = require('../../utils/email/sendEmail');
+const Accommodation = require('../models/accommodation');
+const Activity = require('../models/activity');
 const Reservation = require('../models/reservation');
 const User = require('../models/user');
 
@@ -22,26 +24,63 @@ async function getReservations(req, res) {
 
 async function newReservation(req, res) {
   try {
-    const newreservation = new Reservation(req.body);
+    const newReservation = new Reservation(req.body);
+    console.log(newReservation);
 
     const { _id } = req.user;
 
+    // if (newReservation.typeReservation === 'Actividad') {
+    //   const activities = await Activity.find({ idAuthor: _id });
+    //   console.log(activities);
+
+    //   if (activities) {
+    //     return res.status(400).json({
+    //       message: 'No puedes reservar una actividad creada por ti'
+    //     });
+    //   }
+    // }
+
+    // if (newReservation.typeReservation === 'Alojamiento') {
+    //   const accommodations = await Accommodation.find({ idAuthor: _id });
+    //   console.log(accommodations);
+
+    //   if (accommodations) {
+    //     return res.status(400).json({
+    //       message: 'No puedes reservar una alojamiento creado por ti'
+    //     });
+    //   }
+    // }
+
     const findUser = await User.findById(_id).populate('reservations');
-    const newReservationDate = newreservation.entryDate;
+    const newReservationDate = newReservation.entryDate;
 
     const reservationUser = findUser.reservations;
     let alreadyReservedActivity = false;
     let alreadyReservedAccommodation = false;
 
-    if (newreservation.typeReservation === 'Alojamiento') {
-      const reservationAccomodation = newreservation.accommodationId.toString();
+    if (newReservation.typeReservation === 'Alojamiento') {
+      const accommodation = await Accommodation.findById(newReservation.accommodationId);
+
+      if (accommodation.idAuthor.toString() === newReservation.userId.toString()) {
+        return res.status(400).json({
+          message: 'No puedes reservar una alojamiento creado por ti'
+        });
+      }
+      const reservationAccomodation = newReservation.accommodationId.toString();
       const findReservations = reservationUser.filter((reservation) => reservation.accommodationId);
       alreadyReservedAccommodation = findReservations.some((reservation) => {
         const reservationDate = reservation.entryDate;
         return reservation.accommodationId.toString() === reservationAccomodation && reservationDate === newReservationDate;
       });
     } else {
-      const reservationActivity = newreservation.activityId.toString();
+      const activitie = await Activity.findById(newReservation.activityId);
+
+      if (activitie.idAuthor.toString() === newReservation.userId.toString()) {
+        return res.status(400).json({
+          message: 'No puedes reservar una actividad creada por ti'
+        });
+      }
+      const reservationActivity = newReservation.activityId.toString();
       const findReservations = reservationUser.filter((reservation) => reservation.activityId);
       alreadyReservedActivity = findReservations.some((reservation) => {
         const reservationDate = reservation.entryDate;
@@ -62,14 +101,14 @@ async function newReservation(req, res) {
         _id,
         {
           $push: {
-            reservations: newreservation._id
+            reservations: newReservation._id
           }
         },
         { new: true }
       );
 
-      const reservation = await newreservation.save();
-      sendEmail(user, newreservation, newreservation.typeReservation);
+      const reservation = await newReservation.save();
+      sendEmail(user, newReservation, newReservation.typeReservation);
 
       return res.status(201).json({
         message: 'Reserva realizada correctamente, revisa tu correo para poder verla.',
@@ -77,11 +116,14 @@ async function newReservation(req, res) {
       });
     }
   } catch (error) {
+    console.log(error);
+
     return res.status(500).json({
       message: 'Internal Server Error'
     });
   }
 }
+
 async function deleteReservation(req, res) {
   try {
     const { id } = req.params;
