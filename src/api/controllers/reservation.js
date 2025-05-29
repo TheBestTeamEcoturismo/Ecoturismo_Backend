@@ -25,32 +25,7 @@ async function getReservations(req, res) {
 async function newReservation(req, res) {
   try {
     const newReservation = new Reservation(req.body);
-    console.log(newReservation);
-
     const { _id } = req.user;
-
-    // if (newReservation.typeReservation === 'Actividad') {
-    //   const activities = await Activity.find({ idAuthor: _id });
-    //   console.log(activities);
-
-    //   if (activities) {
-    //     return res.status(400).json({
-    //       message: 'No puedes reservar una actividad creada por ti'
-    //     });
-    //   }
-    // }
-
-    // if (newReservation.typeReservation === 'Alojamiento') {
-    //   const accommodations = await Accommodation.find({ idAuthor: _id });
-    //   console.log(accommodations);
-
-    //   if (accommodations) {
-    //     return res.status(400).json({
-    //       message: 'No puedes reservar una alojamiento creado por ti'
-    //     });
-    //   }
-    // }
-
     const findUser = await User.findById(_id).populate('reservations');
     const newReservationDate = newReservation.entryDate;
 
