@@ -3,7 +3,7 @@ const nodemailer = require('nodemailer');
 function sendEmail(user, reservation, type) {
   const { name, email } = user;
 
-  const { entryDate, exitDate, day, hour } = reservation;
+  const { entryDate, exitDate, hour } = reservation;
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -36,7 +36,7 @@ function sendEmail(user, reservation, type) {
           <h1 style="color: #1b4332; text-align: center;">Verificación de reserva</h1>
           <p>Hola ${name},</p>
           <p>Reserva realizada correctamente:</p>
-          <p>Día de la actividad: ${day}</p>
+          <p>Día de la actividad: ${entryDate}</p>
           <p>Hora de la actividad: ${hour}</p>
           <p>Si no solicitaste esta reserva, puedes ignorar este correo.</p>
             <footer style="margin-top: 20px; text-align: center; font-size: 12px; color: #aaa;">
