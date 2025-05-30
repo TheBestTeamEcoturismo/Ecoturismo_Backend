@@ -5,8 +5,8 @@ const upload = require('../../utils/cloudinary/file');
 const { register, getUsers, updateUser, login, getUser, deleteUser, logout } = require('../controllers/user');
 
 const userRouter = require('express').Router();
-userRouter.get('/', getUsers);
-userRouter.get('/:id', getUser);
+userRouter.get('/', isAuth, getUsers);
+userRouter.get('/:id', isAuth, getUser);
 userRouter.post('/register', upload.single('image'), register);
 userRouter.post('/login', login);
 userRouter.post('/logout', logout);
